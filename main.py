@@ -1,15 +1,16 @@
-import requests
-import json
 import datetime
 import hashlib
+import json
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+import requests
 from chinese_calendar import is_workday, is_holiday
-from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # ================= 配置区 =================
-SEND_KEY = os.environ.get("SEND_KEY")  # Server酱 SendKey  # Server酱 SendKey
+SEND_KEY = os.environ.get("SEND_KEY")  # Server酱 SendKey
 STATUS_FILE = "chengdu_air_status.json"
 
 # API配置
@@ -27,6 +28,7 @@ HEADERS = {
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"'
 }
+
 
 # ==========================================
 
@@ -154,14 +156,21 @@ class ChengduAirBot:
         desp += f"### 🚗 今日限行规定\n"
         desp += f"{self.get_traffic_restriction(aqi_val, datetime.datetime.now())}\n\n"
 
-        # 3. 预测部分
+        # 3. 预测部分 - 修改处：新增“星期”列
         if forecast and 'forecastTime' in forecast:
             desp += "### 📈 未来7天趋势预测\n"
-            desp += "| 日期 | AQI范围 | 等级 | 污染物 |\n"
-            desp += "| :--- | :--- | :--- | :--- |\n"
+            desp += "| 日期 | 星期 | AQI范围 | 等级 | 污染物 |\n"
+            desp += "| :--- | :--- | :--- | :--- | :--- |\n"
+
+            # 星期映射表
+            week_map = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+
             for i in range(len(forecast['forecastTime'])):
-                dt = datetime.datetime.fromtimestamp(forecast['forecastTime'][i] / 1000).strftime('%m-%d')
-                desp += f"| {dt} | {forecast['aqiMin'][i]}-{forecast['aqiMax'][i]} | {forecast['aqiLevel'][i]} | {forecast['primaryPollutant'][i]} |\n"
+                dt_obj = datetime.datetime.fromtimestamp(forecast['forecastTime'][i] / 1000)
+                dt_str = dt_obj.strftime('%m-%d')
+                week_str = week_map[dt_obj.weekday()]  # 获取星期
+
+                desp += f"| {dt_str} | {week_str} | {forecast['aqiMin'][i]}-{forecast['aqiMax'][i]} | {forecast['aqiLevel'][i]} | {forecast['primaryPollutant'][i]} |\n"
 
         desp += f"\n---\n*数据源: 四川省生态环境厅*\n*统计时间: {datetime.datetime.now().strftime('%H:%M:%S')}*"
 
