@@ -3,6 +3,7 @@ import json
 import datetime
 import hashlib
 import os
+from datetime import datetime, timedelta
 from chinese_calendar import is_workday, is_holiday
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -139,10 +140,13 @@ class ChengduAirBot:
         aqi_val = int(chengdu_now['aqi'])
         data_date = date_obj.strftime('%Y-%m-%d')
 
-        title = f"🐼 成都空气质量及限行日报 ({data_date})"
+        next_day = date_obj + timedelta(days=1)
+        next_day_str = next_day.strftime('%Y-%m-%d')
+
+        title = f"🐼 成都空气质量及限行日报 ({next_day_str})"
 
         # 1. 实况部分
-        desp = f"### 📊 成都实况数据 ({data_date})\n"
+        desp = f"### 📊 成都实况数据 (数据来源于：{data_date})\n"
         desp += f"- **AQI指数**: `{aqi_val}` ({self.get_emoji(aqi_val)})\n"
         desp += f"- **首要污染物**: `{chengdu_now['pollu']}`\n\n"
 
