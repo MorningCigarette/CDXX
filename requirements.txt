@@ -1,0 +1,4 @@
+requests
+chinesecalendar
+chinese-calendar
+urllib3
